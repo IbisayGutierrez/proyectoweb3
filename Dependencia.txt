@@ -1,0 +1,11 @@
+npm init -y 
+
+npm i express mysql2 cors dotenv 
+
+npm i -D nodemon
+
+npm install bcrypt jsonwebtoken express-validator
+
+npm install express-rate-limit 
+
+npm install --save swagger-ui-express swagger-jsdoc
