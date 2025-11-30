@@ -11,7 +11,12 @@ const swaggerDefinition = {
     server: [
       {
         url: 'http://localhost:3000',
+        description: 'Local server',
     },
+    {
+        url: 'https://proyectoweb3-alm2.onrender.com',
+        description: 'Servidor Publico',
+    }
 ]
 };
 
