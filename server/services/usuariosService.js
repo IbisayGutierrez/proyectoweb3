@@ -21,13 +21,12 @@ export const crearUsuario = async (usuario) => {
         telefono,
         direccion,
         rol,
-        password_hash,
-        estado
+        password_hash
     } = usuario;
     const hashedPassword = await bycrypt.hash(password_hash, 10);
     const [result] = await pool.query(
-        'CALL pa_crear_usuario(?, ?, ?, ?, ?, ?, ?, ?)',
-         [nombre, correo, telefono, direccion, rol, hashedPassword, estado]
+        'CALL pa_registrar_usuario(?, ?, ?, ?, ?, ?)',
+         [nombre, correo, telefono, direccion, rol, hashedPassword]
         );
     return result;
 }
@@ -39,14 +38,21 @@ export const actualizarUsuario = async (id, usuario) => {
         correo,
         telefono,
         direccion,
-        rol,
-        password_hash,
-        estado 
+        rol
     } = usuario;
-    const hashedPassword = await bycrypt.hash(password_hash, 10);
     const [result] = await pool.query(
-        'CALL pa_editar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [id, nombre, correo, telefono, direccion, rol, hashedPassword, estado]
+        'CALL pa_editar_usuario(?, ?, ?, ?, ?, ?)',
+        [id, nombre, correo, telefono, direccion, rol]
+    );
+    return result;
+}
+
+// Cambiar la contraseña de un usuario
+export const cambiarContrasena = async (id, nuevaContrasena) => {
+    const hashedPassword = await bycrypt.hash(nuevaContrasena, 10);
+    const [result] = await pool.query(
+        'CALL pa_cambiar_contrasena(?, ?)',
+        [id, hashedPassword]
     );
     return result;
 }

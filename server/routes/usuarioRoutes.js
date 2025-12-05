@@ -153,7 +153,7 @@ router.get('/:id', async (req, res) => {
  *   post:
  *     summary: Registrar un nuevo usuario
  *     tags: [Usuarios]
- *     description: Crea un nuevo usuario en el sistema con los datos proporcionados
+ *     description: Crea un nuevo usuario en el sistema con estado ACTIVO por defecto
  *     requestBody:
  *       required: true
  *       content:
@@ -192,14 +192,9 @@ router.get('/:id', async (req, res) => {
  *                 format: password
  *                 description: Contraseña del usuario (será hasheada)
  *                 example: MiContraseñaSegura123
- *               estado:
- *                 type: string
- *                 description: Estado actual del usuario
- *                 enum: [ACTIVO, INACTIVO]
- *                 example: ACTIVO
  *     responses:
  *       201:
- *         description: Usuario creado exitosamente
+ *         description: Usuario creado exitosamente con estado ACTIVO
  *         content:
  *           application/json:
  *             schema:
@@ -266,7 +261,7 @@ router.post('/register', async (req, res) => {
  *   put:
  *     summary: Actualizar un usuario existente
  *     tags: [Usuarios]
- *     description: Actualiza la información de un usuario específico
+ *     description: Actualiza la información de un usuario. NO incluye cambio de contraseña (usa PATCH /usuarios/:id/password)
  *     parameters:
  *       - in: path
  *         name: id
@@ -304,11 +299,6 @@ router.post('/register', async (req, res) => {
  *                 description: Rol del usuario en el sistema
  *                 enum: [ADMIN, VOLUNTARIO, ADOPTANTE, VISITANTE]
  *                 example: ADMIN
- *               estado:
- *                 type: string
- *                 description: Estado actual del usuario
- *                 enum: [ACTIVO, INACTIVO]
- *                 example: ACTIVO
  *     responses:
  *       200:
  *         description: Usuario actualizado exitosamente
@@ -317,31 +307,9 @@ router.post('/register', async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id_usuario:
- *                   type: integer
- *                   example: 1
- *                 nombre:
+ *                 message:
  *                   type: string
- *                   example: Juan Pérez Actualizado
- *                 correo:
- *                   type: string
- *                   example: juan.nuevo@example.com
- *                 telefono:
- *                   type: string
- *                   example: "+34612345678"
- *                 direccion:
- *                   type: string
- *                   example: "Calle Nueva 456, Barcelona"
- *                 rol:
- *                   type: string
- *                   example: ADMIN
- *                 estado:
- *                   type: string
- *                   example: ACTIVO
- *                 fecha_registro:
- *                   type: string
- *                   format: date-time
- *                   example: "2025-12-01T10:30:00Z"
+ *                   example: Usuario actualizado exitosamente
  *       404:
  *         description: Usuario no encontrado
  *         content:
@@ -365,10 +333,96 @@ router.post('/register', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
     try {
-        const usuarioActualizado = await usuarioService.actualizarUsuario(req.params.id, req.body);
-        res.json(usuarioActualizado);
+        await usuarioService.actualizarUsuario(req.params.id, req.body);
+        res.json({ message: 'Usuario actualizado exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el usuario' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/usuarios/{id}/password:
+ *   patch:
+ *     summary: Cambiar la contraseña de un usuario
+ *     tags: [Usuarios]
+ *     description: Actualiza únicamente la contraseña de un usuario específico
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único del usuario
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Nueva contraseña del usuario
+ *                 example: NuevaContraseñaSegura123
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Contraseña actualizada exitosamente
+ *       400:
+ *         description: Contraseña no proporcionada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: La contraseña es requerida
+ *       404:
+ *         description: Usuario no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error al cambiar la contraseña
+ */
+router.patch('/:id/password', async (req, res) => {
+    try {
+        const { password } = req.body;
+        
+        if (!password || password.trim() === '') {
+            return res.status(400).json({ error: 'La contraseña es requerida' });
+        }
+        
+        await usuarioService.cambiarContrasena(req.params.id, password);
+        res.json({ message: 'Contraseña actualizada exitosamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al cambiar la contraseña' });
     }
 });
 
