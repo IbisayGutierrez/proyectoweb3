@@ -6,6 +6,9 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger/swagger.js';
 
 import usuarioRoutes from './routes/usuarioRoutes.js';
+import tareasRoutes from './routes/tareasRoutes.js';
+import historialRoutes from './routes/historialRoutes.js';
+import loginRoutes from './routes/loginRoutes.js';
 
 
 
@@ -28,6 +31,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/tareas', tareasRoutes);
+app.use('/api/historial', historialRoutes);
+app.use('/api/login', loginRoutes);
 
 // Start server
 app.listen(PORT, () => {
