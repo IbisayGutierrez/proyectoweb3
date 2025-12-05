@@ -51,9 +51,9 @@ export const actualizarUsuario = async (id, usuario) => {
     return result;
 }
 
-// Eliminar un usuario
+// Eliminar un usuario no borrado físicamente, solo cambiar su estado a inactivo
 export const eliminarUsuario = async (id) => {
-    const [result] = await pool.query('CALL pa_eliminar_usuario(?)', [id]);
+    const [result] = await pool.query('CALL pa_desactivar_usuario(?)', [id]);
     return result;
 }
 

@@ -376,20 +376,28 @@ router.put('/:id', async (req, res) => {
  * @swagger
  * /api/usuarios/{id}:
  *   delete:
- *     summary: Eliminar un usuario
+ *     summary: Eliminar un usuario (cambio de estado a INACTIVO)
  *     tags: [Usuarios]
- *     description: Elimina permanentemente un usuario del sistema
+ *     description: Cambia el estado del usuario a INACTIVO sin eliminarlo físicamente de la base de datos
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID único del usuario a eliminar
+ *         description: ID único del usuario a desactivar
  *         example: 1
  *     responses:
- *       204:
- *         description: Usuario eliminado exitosamente (sin contenido)
+ *       200:
+ *         description: Usuario desactivado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Usuario desactivado exitosamente
  *       404:
  *         description: Usuario no encontrado
  *         content:
@@ -409,14 +417,14 @@ router.put('/:id', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al eliminar el usuario
+ *                   example: Error al desactivar el usuario
  */
 router.delete('/:id', async (req, res) => {
     try {
         await usuarioService.eliminarUsuario(req.params.id);
-        res.status(204).end();
+        res.json({ message: 'Usuario desactivado exitosamente' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el usuario' });
+        res.status(500).json({ error: 'Error al desactivar el usuario' });
     }
 });
 
