@@ -66,9 +66,14 @@ export const eliminarUsuario = async (id) => {
 //funcion para validar un usuario durante el login por correo y password
 export const validarUsuario = async (correo, password) => {
     const [rows] = await pool.query('CALL pa_buscar_usuario_por_correo(?)', [correo]);
-    const usuario = rows[0];
-    if (usuario && await bcrypt.compare(password, usuario.password_hash)) {
-        return usuario;
+    
+    // Los CALL procedures devuelven array anidado: rows[0] es el resultset, rows[0][0] es el usuario
+    const usuario = rows[0]?.[0] || rows[0];
+    
+    if (!usuario || !usuario.password_hash) {
+        return null;
     }
-    return null;
+    
+    const passwordMatch = await bcrypt.compare(password, usuario.password_hash);
+    return passwordMatch ? usuario : null;
 }
