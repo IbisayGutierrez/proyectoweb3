@@ -248,10 +248,16 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/register', async (req, res) => {
     try {
+        console.log('Body recibido:', req.body);
         const nuevoUsuario = await usuarioService.crearUsuario(req.body);
         res.status(201).json(nuevoUsuario);
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear el usuario' });
+        console.error('Error completo:', error);
+        res.status(500).json({ 
+            error: 'Error al crear el usuario',
+            details: error.message,
+            code: error.code
+        });
     }
 });
 

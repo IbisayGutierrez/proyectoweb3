@@ -15,20 +15,32 @@ export const getUsuarioPorId = async (id) => {
 
 // Crear un nuevo usuario
 export const crearUsuario = async (usuario) => {
-    const { 
-        nombre, 
-        correo,
-        telefono,
-        direccion,
-        rol,
-        password_hash
-    } = usuario;
-    const hashedPassword = await bcrypt.hash(password_hash, 10);
-    const [result] = await pool.query(
-        'CALL pa_registrar_usuario(?, ?, ?, ?, ?, ?)',
-         [nombre, correo, telefono, direccion, rol, hashedPassword]
+     try {
+        const { 
+            nombre, 
+            correo,
+            telefono,
+            direccion,
+            rol,
+            password_hash
+        } = usuario;
+        
+        console.log('Datos recibidos:', { nombre, correo, telefono, direccion, rol });
+        
+        const hashedPassword = await bcrypt.hash(password_hash, 10);
+        console.log('Password hasheada correctamente');
+        
+        const [result] = await pool.query(
+            'CALL pa_registrar_usuario(?, ?, ?, ?, ?, ?)',
+            [nombre, correo, telefono, direccion, rol, hashedPassword]
         );
-    return result;
+        
+        console.log('Usuario creado exitosamente:', result);
+        return result;
+    } catch (error) {
+        console.error('Error detallado en crearUsuario:', error);
+        throw error;
+    }
 }
 
 // Actualizar un usuario existente
