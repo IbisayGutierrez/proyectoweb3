@@ -1,7 +1,7 @@
 import express from 'express';
-import login from '../controllers/loginController.js';
+import { login } from '../services/loginService.js';
 import rateLimit from 'express-rate-limit';
-import logEvent from '../utils/logEvent.js';
+import {logEvent} from '../utils/logger.js';
 
 const router = express.Router();
 

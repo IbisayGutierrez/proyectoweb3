@@ -1,5 +1,7 @@
 import express from 'express';
 import * as usuarioService from '../services/usuariosService.js';
+import { verificarToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware } from '../middleware/rolMiddleware.js';
 
 const router = express.Router();
 
@@ -56,7 +58,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Error al obtener los usuarios
  */
-router.get('/', async (req, res) => {
+router.get('/', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         const usuarios = await usuarioService.getUsuarios();
         res.json(usuarios);
@@ -134,7 +136,7 @@ router.get('/', async (req, res) => {
  *                   type: string
  *                   example: Error al obtener el usuario
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         const usuario = await usuarioService.getUsuarioPorId(req.params.id);
         if (usuario) {
@@ -153,7 +155,7 @@ router.get('/:id', async (req, res) => {
  *   post:
  *     summary: Registrar un nuevo usuario
  *     tags: [Usuarios]
- *     description: Crea un nuevo usuario en el sistema con los datos proporcionados
+ *     description: Crea un nuevo usuario en el sistema con estado ACTIVO por defecto
  *     requestBody:
  *       required: true
  *       content:
@@ -192,14 +194,9 @@ router.get('/:id', async (req, res) => {
  *                 format: password
  *                 description: Contraseña del usuario (será hasheada)
  *                 example: MiContraseñaSegura123
- *               estado:
- *                 type: string
- *                 description: Estado actual del usuario
- *                 enum: [ACTIVO, INACTIVO]
- *                 example: ACTIVO
  *     responses:
  *       201:
- *         description: Usuario creado exitosamente
+ *         description: Usuario creado exitosamente con estado ACTIVO
  *         content:
  *           application/json:
  *             schema:
@@ -251,6 +248,8 @@ router.get('/:id', async (req, res) => {
  *                   type: string
  *                   example: Error al crear el usuario
  */
+
+//queda sin verificacion como ruta publica para permitir el registro de nuevos usuarios
 router.post('/register', async (req, res) => {
     try {
         const nuevoUsuario = await usuarioService.crearUsuario(req.body);
@@ -266,7 +265,7 @@ router.post('/register', async (req, res) => {
  *   put:
  *     summary: Actualizar un usuario existente
  *     tags: [Usuarios]
- *     description: Actualiza la información de un usuario específico
+ *     description: Actualiza la información de un usuario. NO incluye cambio de contraseña (usa PATCH /usuarios/:id/password)
  *     parameters:
  *       - in: path
  *         name: id
@@ -304,11 +303,6 @@ router.post('/register', async (req, res) => {
  *                 description: Rol del usuario en el sistema
  *                 enum: [ADMIN, VOLUNTARIO, ADOPTANTE, VISITANTE]
  *                 example: ADMIN
- *               estado:
- *                 type: string
- *                 description: Estado actual del usuario
- *                 enum: [ACTIVO, INACTIVO]
- *                 example: ACTIVO
  *     responses:
  *       200:
  *         description: Usuario actualizado exitosamente
@@ -317,31 +311,9 @@ router.post('/register', async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id_usuario:
- *                   type: integer
- *                   example: 1
- *                 nombre:
+ *                 message:
  *                   type: string
- *                   example: Juan Pérez Actualizado
- *                 correo:
- *                   type: string
- *                   example: juan.nuevo@example.com
- *                 telefono:
- *                   type: string
- *                   example: "+34612345678"
- *                 direccion:
- *                   type: string
- *                   example: "Calle Nueva 456, Barcelona"
- *                 rol:
- *                   type: string
- *                   example: ADMIN
- *                 estado:
- *                   type: string
- *                   example: ACTIVO
- *                 fecha_registro:
- *                   type: string
- *                   format: date-time
- *                   example: "2025-12-01T10:30:00Z"
+ *                   example: Usuario actualizado exitosamente
  *       404:
  *         description: Usuario no encontrado
  *         content:
@@ -363,10 +335,10 @@ router.post('/register', async (req, res) => {
  *                   type: string
  *                   example: Error al actualizar el usuario
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
-        const usuarioActualizado = await usuarioService.actualizarUsuario(req.params.id, req.body);
-        res.json(usuarioActualizado);
+        await usuarioService.actualizarUsuario(req.params.id, req.body);
+        res.json({ message: 'Usuario actualizado exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el usuario' });
     }
@@ -374,22 +346,54 @@ router.put('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /api/usuarios/{id}:
- *   delete:
- *     summary: Eliminar un usuario
+ * /api/usuarios/{id}/password:
+ *   patch:
+ *     summary: Cambiar la contraseña de un usuario
  *     tags: [Usuarios]
- *     description: Elimina permanentemente un usuario del sistema
+ *     description: Actualiza únicamente la contraseña de un usuario específico
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID único del usuario a eliminar
+ *         description: ID único del usuario
  *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Nueva contraseña del usuario
+ *                 example: NuevaContraseñaSegura123
  *     responses:
- *       204:
- *         description: Usuario eliminado exitosamente (sin contenido)
+ *       200:
+ *         description: Contraseña actualizada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Contraseña actualizada exitosamente
+ *       400:
+ *         description: Contraseña no proporcionada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: La contraseña es requerida
  *       404:
  *         description: Usuario no encontrado
  *         content:
@@ -409,14 +413,76 @@ router.put('/:id', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al eliminar el usuario
+ *                   example: Error al cambiar la contraseña
  */
-router.delete('/:id', async (req, res) => {
+router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
+    try {
+        const { password } = req.body;
+        
+        if (!password || password.trim() === '') {
+            return res.status(400).json({ error: 'La contraseña es requerida' });
+        }
+        
+        await usuarioService.cambiarContrasena(req.params.id, password);
+        res.json({ message: 'Contraseña actualizada exitosamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al cambiar la contraseña' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/usuarios/{id}:
+ *   delete:
+ *     summary: Eliminar un usuario (cambio de estado a INACTIVO)
+ *     tags: [Usuarios]
+ *     description: Cambia el estado del usuario a INACTIVO sin eliminarlo físicamente de la base de datos
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único del usuario a desactivar
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Usuario desactivado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Usuario desactivado exitosamente
+ *       404:
+ *         description: Usuario no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error al desactivar el usuario
+ */
+router.delete('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         await usuarioService.eliminarUsuario(req.params.id);
-        res.status(204).end();
+        res.json({ message: 'Usuario desactivado exitosamente' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el usuario' });
+        res.status(500).json({ error: 'Error al desactivar el usuario' });
     }
 });
 

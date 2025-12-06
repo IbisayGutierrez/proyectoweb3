@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { validarUsuario } from './usuariosService';
+import { validarUsuario } from './usuariosService.js';
 
 export const login = async (correo, contrasena) => {
     const usuario = await validarUsuario(correo, contrasena);

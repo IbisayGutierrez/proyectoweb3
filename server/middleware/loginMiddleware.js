@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 export const verificarToken = (req, res, next) => {
-    const authHeader = req.headesr.authorization;
+    const authHeader = req.headers.authorization;
     if (!authHeader) {
         return res.status(401).json({ message: 'Token no proporcionado' });
     }

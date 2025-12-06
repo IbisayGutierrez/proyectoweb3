@@ -1,9 +1,9 @@
 import pool from '../db/conexion.js';
-import bycrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 // Obtener todos los usuarios
 export const getUsuarios = async () => {
-    const [rows] = await pool.query('CALL vw_usuarios()');
+    const [rows] = await pool.query('SELECT * FROM vw_usuarios');
     return rows;
 }
 
@@ -21,13 +21,12 @@ export const crearUsuario = async (usuario) => {
         telefono,
         direccion,
         rol,
-        password_hash,
-        estado
+        password_hash
     } = usuario;
-    const hashedPassword = await bycrypt.hash(password_hash, 10);
+    const hashedPassword = await bcrypt.hash(password_hash, 10);
     const [result] = await pool.query(
-        'CALL pa_crear_usuario(?, ?, ?, ?, ?, ?, ?, ?)',
-         [nombre, correo, telefono, direccion, rol, hashedPassword, estado]
+        'CALL pa_registrar_usuario(?, ?, ?, ?, ?, ?)',
+         [nombre, correo, telefono, direccion, rol, hashedPassword]
         );
     return result;
 }
@@ -39,30 +38,42 @@ export const actualizarUsuario = async (id, usuario) => {
         correo,
         telefono,
         direccion,
-        rol,
-        password_hash,
-        estado 
+        rol
     } = usuario;
-    const hashedPassword = await bycrypt.hash(password_hash, 10);
     const [result] = await pool.query(
-        'CALL pa_editar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [id, nombre, correo, telefono, direccion, rol, hashedPassword, estado]
+        'CALL pa_editar_usuario(?, ?, ?, ?, ?, ?)',
+        [id, nombre, correo, telefono, direccion, rol]
     );
     return result;
 }
 
-// Eliminar un usuario
+// Cambiar la contraseña de un usuario
+export const cambiarContrasena = async (id, nuevaContrasena) => {
+    const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
+    const [result] = await pool.query(
+        'CALL pa_cambiar_contrasena(?, ?)',
+        [id, hashedPassword]
+    );
+    return result;
+}
+
+// Eliminar un usuario no borrado físicamente, solo cambiar su estado a inactivo
 export const eliminarUsuario = async (id) => {
-    const [result] = await pool.query('CALL pa_eliminar_usuario(?)', [id]);
+    const [result] = await pool.query('CALL pa_desactivar_usuario(?)', [id]);
     return result;
 }
 
 //funcion para validar un usuario durante el login por correo y password
 export const validarUsuario = async (correo, password) => {
     const [rows] = await pool.query('CALL pa_buscar_usuario_por_correo(?)', [correo]);
-    const usuario = rows[0];
-    if (usuario && await bycrypt.compare(password, usuario.password_hash)) {
-        return usuario;
+    
+    // Los CALL procedures devuelven array anidado: rows[0] es el resultset, rows[0][0] es el usuario
+    const usuario = rows[0]?.[0] || rows[0];
+    
+    if (!usuario || !usuario.password_hash) {
+        return null;
     }
-    return null;
+    
+    const passwordMatch = await bcrypt.compare(password, usuario.password_hash);
+    return passwordMatch ? usuario : null;
 }
