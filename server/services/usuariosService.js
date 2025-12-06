@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 
 // Obtener todos los usuarios
 export const getUsuarios = async () => {
-    const [rows] = await pool.query('SELECT * FROM vw_usuarios()');
+    const [rows] = await pool.query('SELECT * FROM vw_usuarios');
     return rows;
 }
 
