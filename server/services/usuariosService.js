@@ -1,5 +1,5 @@
 import pool from '../db/conexion.js';
-import bycrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 // Obtener todos los usuarios
 export const getUsuarios = async () => {
@@ -23,7 +23,7 @@ export const crearUsuario = async (usuario) => {
         rol,
         password_hash
     } = usuario;
-    const hashedPassword = await bycrypt.hash(password_hash, 10);
+    const hashedPassword = await bcrypt.hash(password_hash, 10);
     const [result] = await pool.query(
         'CALL pa_registrar_usuario(?, ?, ?, ?, ?, ?)',
          [nombre, correo, telefono, direccion, rol, hashedPassword]
@@ -49,7 +49,7 @@ export const actualizarUsuario = async (id, usuario) => {
 
 // Cambiar la contraseña de un usuario
 export const cambiarContrasena = async (id, nuevaContrasena) => {
-    const hashedPassword = await bycrypt.hash(nuevaContrasena, 10);
+    const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
     const [result] = await pool.query(
         'CALL pa_cambiar_contrasena(?, ?)',
         [id, hashedPassword]
@@ -67,7 +67,7 @@ export const eliminarUsuario = async (id) => {
 export const validarUsuario = async (correo, password) => {
     const [rows] = await pool.query('CALL pa_buscar_usuario_por_correo(?)', [correo]);
     const usuario = rows[0];
-    if (usuario && await bycrypt.compare(password, usuario.password_hash)) {
+    if (usuario && await bcrypt.compare(password, usuario.password_hash)) {
         return usuario;
     }
     return null;
