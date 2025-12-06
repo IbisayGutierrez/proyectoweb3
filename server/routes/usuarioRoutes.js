@@ -1,5 +1,7 @@
 import express from 'express';
 import * as usuarioService from '../services/usuariosService.js';
+import { verificarToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware } from '../middleware/rolMiddleware.js';
 
 const router = express.Router();
 
@@ -56,7 +58,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Error al obtener los usuarios
  */
-router.get('/', async (req, res) => {
+router.get('/', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         const usuarios = await usuarioService.getUsuarios();
         res.json(usuarios);
@@ -134,7 +136,7 @@ router.get('/', async (req, res) => {
  *                   type: string
  *                   example: Error al obtener el usuario
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         const usuario = await usuarioService.getUsuarioPorId(req.params.id);
         if (usuario) {
@@ -246,6 +248,8 @@ router.get('/:id', async (req, res) => {
  *                   type: string
  *                   example: Error al crear el usuario
  */
+
+//queda sin verificacion como ruta publica para permitir el registro de nuevos usuarios
 router.post('/register', async (req, res) => {
     try {
         const nuevoUsuario = await usuarioService.crearUsuario(req.body);
@@ -331,7 +335,7 @@ router.post('/register', async (req, res) => {
  *                   type: string
  *                   example: Error al actualizar el usuario
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         await usuarioService.actualizarUsuario(req.params.id, req.body);
         res.json({ message: 'Usuario actualizado exitosamente' });
@@ -411,7 +415,7 @@ router.put('/:id', async (req, res) => {
  *                   type: string
  *                   example: Error al cambiar la contraseña
  */
-router.patch('/:id/password', async (req, res) => {
+router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         const { password } = req.body;
         
@@ -473,7 +477,7 @@ router.patch('/:id/password', async (req, res) => {
  *                   type: string
  *                   example: Error al desactivar el usuario
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         await usuarioService.eliminarUsuario(req.params.id);
         res.json({ message: 'Usuario desactivado exitosamente' });
