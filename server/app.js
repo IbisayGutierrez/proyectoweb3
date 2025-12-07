@@ -9,7 +9,8 @@ import usuarioRoutes from './routes/usuarioRoutes.js';
 import tareasRoutes from './routes/tareasRoutes.js';
 import historialRoutes from './routes/historialRoutes.js';
 import loginRoutes from './routes/loginRoutes.js';
-
+import animalesRoutes from './routes/animalsRoutes.js';
+import solicitudesRoutes from './routes/solicitudesRoutes.js';
 
 
 
@@ -34,6 +35,8 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/historial', historialRoutes);
 app.use('/api/login', loginRoutes);
+app.use('/api/animales', animalesRoutes);
+app.use('/api/solicitudes', solicitudesRoutes);
 
 // Start server
 app.listen(PORT, () => {
