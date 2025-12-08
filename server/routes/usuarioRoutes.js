@@ -12,6 +12,8 @@ const router = express.Router();
  *     summary: Obtener todos los usuarios
  *     tags: [Usuarios]
  *     description: Retorna la lista completa de usuarios registrados en el sistema
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de usuarios obtenida exitosamente
@@ -33,10 +35,10 @@ const router = express.Router();
  *                     example: juan@example.com
  *                   telefono:
  *                     type: string
- *                     example: "+34612345678"
+ *                     example: "45803695"
  *                   direccion:
  *                     type: string
- *                     example: Calle Falsa 123
+ *                     example: Cañas 123
  *                   rol:
  *                     type: string
  *                     example: ADMIN
@@ -74,6 +76,8 @@ router.get('/', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *     summary: Obtener un usuario por ID
  *     tags: [Usuarios]
  *     description: Retorna la información detallada de un usuario específico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -101,10 +105,10 @@ router.get('/', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *                   example: juan@example.com
  *                 telefono:
  *                   type: string
- *                   example: "+34612345678"
+ *                   example: "45803695"
  *                 direccion:
  *                   type: string
- *                   example: Calle Falsa 123
+ *                   example: Cañas 123
  *                 rol:
  *                   type: string
  *                   example: ADMIN
@@ -179,11 +183,11 @@ router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *               telefono:
  *                 type: string
  *                 description: Número de teléfono del usuario
- *                 example: "+34612345678"
+ *                 example: "45803695"
  *               direccion:
  *                 type: string
  *                 description: Dirección física del usuario
- *                 example: "Calle Falsa 123, Madrid"
+ *                 example: "Cañas 123"
  *               rol:
  *                 type: string
  *                 description: Rol del usuario en el sistema
@@ -213,10 +217,10 @@ router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *                   example: juan.perez@example.com
  *                 telefono:
  *                   type: string
- *                   example: "+34612345678"
+ *                   example: "45803695"
  *                 direccion:
  *                   type: string
- *                   example: "Calle Falsa 123, Madrid"
+ *                   example: "Cañas 123"
  *                 rol:
  *                   type: string
  *                   example: ADMIN
@@ -266,6 +270,8 @@ router.post('/registro', async (req, res) => {
  *     summary: Actualizar un usuario existente
  *     tags: [Usuarios]
  *     description: Actualiza la información de un usuario. NO incluye cambio de contraseña (usa PATCH /usuarios/:id/password)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -293,11 +299,11 @@ router.post('/registro', async (req, res) => {
  *               telefono:
  *                 type: string
  *                 description: Número de teléfono del usuario
- *                 example: "+34612345678"
+ *                 example: "45803695"
  *               direccion:
  *                 type: string
  *                 description: Dirección física del usuario
- *                 example: "Calle Nueva 456, Barcelona"
+ *                 example: "Cañas Centro"
  *               rol:
  *                 type: string
  *                 description: Rol del usuario en el sistema
@@ -351,6 +357,8 @@ router.put('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *     summary: Cambiar la contraseña de un usuario
  *     tags: [Usuarios]
  *     description: Actualiza únicamente la contraseña de un usuario específico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -437,6 +445,8 @@ router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req
  *     summary: Eliminar un usuario (cambio de estado a INACTIVO)
  *     tags: [Usuarios]
  *     description: Cambia el estado del usuario a INACTIVO sin eliminarlo físicamente de la base de datos
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
