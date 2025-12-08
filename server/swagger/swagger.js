@@ -16,7 +16,16 @@ const swaggerDefinition = {
         url: 'https://proyectoweb3-alm2.onrender.com',
         description: 'Servidor Publico',
     }
-]
+],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
 };
 
 const options = {

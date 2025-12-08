@@ -1,7 +1,7 @@
 
 
 export const rolMiddleware = (...roles) => {
-  const allowedRoles = roles.flat(); // soporta 'ADMIN' o ['ADMIN', 'VOLUNTARIO']
+  const allowedRoles = roles.flat(); 
   return (req, res, next) => {
     if (!req.usuario?.rol) {
       return res.status(401).json({ message: 'Token no proporcionado' });

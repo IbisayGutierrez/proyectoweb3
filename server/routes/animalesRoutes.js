@@ -141,7 +141,7 @@ router.get('/:id', async (req, res) => {
  *       500:
  *         description: Error al crear el animal
  */
-router.post('/crear', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
+router.post('/crear', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), async (req, res) => {
 	try {
 		const resultado = await animalesService.crearAnimal(req.body);
 		res.status(201).json(resultado);
