@@ -8,6 +8,11 @@ export const getTareas = async () => {
     return rows;
 }
 
+export const getTareaPorId = async (id) => {
+    const [rows] = await pool.query('SELECT * FROM vw_tareas WHERE id_tarea = ?', [id]);
+    return rows[0];
+}
+
 // Obtener una tarea por estado
 export const getTareaPorEstado = async (estado) => {
     const [rows] = await pool.query('SELECT * FROM vw_tareas WHERE estado = ?', [estado]);
@@ -24,19 +29,16 @@ export const getTareasPorVoluntario = async (voluntarioId) => {
 // Crear una nueva tarea
 export const crearTarea = async (tarea) => {
     const {
-        id_voluntario,
+        titulo,
         descripcion,
-        fecha_limite,
         estado,
-        prioridad
+        prioridad,
+        fecha_limite,
+        id_voluntario
     } = tarea;
-    const [result] = await pool.query('CALL pa_insertar_tarea_voluntario(?, ?, ?, ?, ?)', [
-        id_voluntario,
-        descripcion,
-        fecha_limite,
-        estado,
-        prioridad
-    ]);
+    const [result] = await pool.query('CALL pa_insertar_tarea_voluntario(?, ?, ?, ?, ?, ?)',
+        [titulo, descripcion, estado, prioridad, fecha_limite, id_voluntario]
+    );
     return result;
 }
 
@@ -44,19 +46,18 @@ export const crearTarea = async (tarea) => {
 export const actualizarTarea = async (id, tarea) => {
     const {
         id_voluntario,
-        descripcion,
-        fecha_limite,
-        estado,
-        prioridad
-    } = tarea;
-    const [result] = await pool.query('CALL pa_editar_tarea_voluntario(?, ?, ?, ?, ?, ?)', [
-        id,
-        id_voluntario,
+        titulo,
         descripcion,
         estado,
         prioridad,
         fecha_limite
-    ]);
+    } = tarea;
+    console.log("ID:", id);
+    console.log("Data:", id_voluntario, titulo, descripcion, estado, prioridad, fecha_limite);
+
+    const [result] = await pool.query('CALL pa_editar_tarea_voluntario(?, ?, ?, ?, ?, ?, ?)',
+        [id, id_voluntario, titulo, descripcion, estado, prioridad, fecha_limite]
+    );
     return result;
 }
 

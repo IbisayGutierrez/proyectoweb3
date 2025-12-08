@@ -12,6 +12,8 @@ const router = express.Router();
  *     summary: Obtener todo el historial médico
  *     tags: [Historial]
  *     description: Retorna la lista completa de registros del historial médico de todos los animales
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Historial obtenido exitosamente
@@ -32,18 +34,38 @@ const router = express.Router();
  *                     type: string
  *                     format: date
  *                     example: "2025-12-01"
- *                   descripcion:
+ *                   diagnostico:
  *                     type: string
- *                     example: "Revisión general de salud"
+ *                     example: "Infección en la pata derecha"
  *                   tratamiento:
  *                     type: string
- *                     example: "Vacunación anual"
+ *                     example: "Antibióticos por 7 días"
  *                   veterinario:
  *                     type: string
  *                     example: "Dr. González"
- *                   notas_adicionales:
+ *                   notas:
  *                     type: string
  *                     example: "Animal en buen estado de salud"
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Token no proporcionado o inválido"
+ *       403:
+ *         description: Acceso prohibido - Rol insuficiente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Acceso denegado"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -53,15 +75,14 @@ const router = express.Router();
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al obtener el historial
+ *                   example: "Error al obtener el historial"
  */
-// Obtener todos los historiales
-router.get('/', async (req, res) => {
+router.get('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
     try {
         const historial = await historialService.getHistorial();
         res.json(historial);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el historial' });
+        res.status(500).json({ error: 'Error al obtener el historial', detalles: error.message });
     }
 });
 
@@ -72,6 +93,8 @@ router.get('/', async (req, res) => {
  *     summary: Obtener un registro del historial por ID
  *     tags: [Historial]
  *     description: Retorna la información detallada de un registro específico del historial médico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,18 +121,38 @@ router.get('/', async (req, res) => {
  *                   type: string
  *                   format: date
  *                   example: "2025-12-01"
- *                 descripcion:
+ *                 diagnostico:
  *                   type: string
- *                   example: "Revisión general de salud"
+ *                   example: "Infección en la pata derecha"
  *                 tratamiento:
  *                   type: string
- *                   example: "Vacunación anual"
+ *                   example: "Antibióticos por 7 días"
  *                 veterinario:
  *                   type: string
  *                   example: "Dr. González"
- *                 notas_adicionales:
+ *                 notas:
  *                   type: string
  *                   example: "Animal en buen estado de salud"
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Token no proporcionado o inválido"
+ *       403:
+ *         description: Acceso prohibido - Rol insuficiente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Acceso denegado"
  *       404:
  *         description: Historial no encontrado
  *         content:
@@ -119,7 +162,7 @@ router.get('/', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Historial no encontrado
+ *                   example: "Historial no encontrado"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -129,14 +172,9 @@ router.get('/', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al obtener el historial
+ *                   example: "Error al obtener el historial"
  */
-
-
-
-
-// Obtener un registro del historial por ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
     const { id } = req.params;
     try {
         const historial = await historialService.getHistorialPorId(id);
@@ -146,10 +184,9 @@ router.get('/:id', async (req, res) => {
             res.status(404).json({ error: 'Historial no encontrado' });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el historial' });
+        res.status(500).json({ error: 'Error al obtener el historial', detalles: error.message });
     }
 });
-
 
 /**
  * @swagger
@@ -158,6 +195,8 @@ router.get('/:id', async (req, res) => {
  *     summary: Obtener historial médico de un animal específico
  *     tags: [Historial]
  *     description: Retorna todos los registros del historial médico de un animal específico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id_animal
@@ -186,18 +225,38 @@ router.get('/:id', async (req, res) => {
  *                     type: string
  *                     format: date
  *                     example: "2025-12-01"
- *                   descripcion:
+ *                   diagnostico:
  *                     type: string
- *                     example: "Revisión general de salud"
+ *                     example: "Infección en la pata derecha"
  *                   tratamiento:
  *                     type: string
- *                     example: "Vacunación anual"
+ *                     example: "Antibióticos por 7 días"
  *                   veterinario:
  *                     type: string
  *                     example: "Dr. González"
- *                   notas_adicionales:
+ *                   notas:
  *                     type: string
  *                     example: "Animal en buen estado de salud"
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Token no proporcionado o inválido"
+ *       403:
+ *         description: Acceso prohibido - Rol insuficiente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Acceso denegado"
  *       404:
  *         description: No se encontraron registros para este animal
  *         content:
@@ -207,7 +266,7 @@ router.get('/:id', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: No hay historial para este animal
+ *                   example: "No hay historial para este animal"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -217,10 +276,9 @@ router.get('/:id', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al obtener el historial del animal
+ *                   example: "Error al obtener el historial del animal"
  */
-// Obtener historial por ID del animal
-router.get('/animal/:id_animal', async (req, res) => {
+router.get('/animal/:id_animal', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
     const { id_animal } = req.params;
     try {
         const historial = await historialService.getHistorialPorAnimal(id_animal);
@@ -230,7 +288,7 @@ router.get('/animal/:id_animal', async (req, res) => {
             res.status(404).json({ error: 'No hay historial para este animal' });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el historial del animal' });
+        res.status(500).json({ error: 'Error al obtener el historial del animal', detalles: error.message });
     }
 });
 
@@ -241,6 +299,8 @@ router.get('/animal/:id_animal', async (req, res) => {
  *     summary: Crear un nuevo registro en el historial médico
  *     tags: [Historial]
  *     description: Crea un nuevo registro de historial médico para un animal específico
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -250,7 +310,7 @@ router.get('/animal/:id_animal', async (req, res) => {
  *             required:
  *               - animal_id
  *               - fecha
- *               - descripcion
+ *               - diagnostico
  *               - tratamiento
  *               - veterinario
  *             properties:
@@ -263,22 +323,22 @@ router.get('/animal/:id_animal', async (req, res) => {
  *                 format: date
  *                 description: Fecha del registro médico
  *                 example: "2025-12-01"
- *               descripcion:
+ *               diagnostico:
  *                 type: string
- *                 description: Descripción del problema o revisión médica
- *                 example: "Revisión general de salud"
+ *                 description: Diagnóstico médico del animal
+ *                 example: "Infección en la pata derecha"
  *               tratamiento:
  *                 type: string
  *                 description: Tratamiento administrado o recomendado
- *                 example: "Vacunación anual"
+ *                 example: "Antibióticos por 7 días"
  *               veterinario:
  *                 type: string
  *                 description: Nombre del veterinario responsable
  *                 example: "Dr. González"
- *               notas_adicionales:
+ *               notas:
  *                 type: string
- *                 description: Notas adicionales o observaciones
- *                 example: "Animal en buen estado de salud"
+ *                 description: Notas adicionales u observaciones (opcional)
+ *                 example: "Monitorear evolución de la infección"
  *     responses:
  *       201:
  *         description: Registro de historial creado exitosamente
@@ -287,30 +347,17 @@ router.get('/animal/:id_animal', async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id_historial:
- *                   type: integer
- *                   example: 10
- *                 id_animal:
- *                   type: integer
- *                   example: 5
- *                 fecha:
+ *                 message:
  *                   type: string
- *                   format: date
- *                   example: "2025-12-01"
- *                 descripcion:
- *                   type: string
- *                   example: "Revisión general de salud"
- *                 tratamiento:
- *                   type: string
- *                   example: "Vacunación anual"
- *                 veterinario:
- *                   type: string
- *                   example: "Dr. González"
- *                 notas_adicionales:
- *                   type: string
- *                   example: "Animal en buen estado de salud"
+ *                   example: "Historial creado correctamente"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id_historial:
+ *                       type: integer
+ *                       example: 10
  *       400:
- *         description: Datos de entrada inválidos
+ *         description: Datos de entrada inválidos o incompletos
  *         content:
  *           application/json:
  *             schema:
@@ -318,7 +365,27 @@ router.get('/animal/:id_animal', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Datos incompletos o inválidos
+ *                   example: "Datos incompletos o inválidos"
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Token no proporcionado o inválido"
+ *       403:
+ *         description: Acceso denegado - Sin permisos suficientes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Acceso denegado"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -328,16 +395,18 @@ router.get('/animal/:id_animal', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al crear el historial
+ *                   example: "Error al crear el historial"
  */
-// Crear un nuevo registro en el historial
 router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
     const nuevoHistorial = req.body;
     try {
         const resultado = await historialService.crearHistorial(nuevoHistorial);
-        res.status(201).json(resultado);
+        if (!resultado) {
+            return res.status(400).json({ error: 'Datos incompletos o inválidos' });
+        }
+        res.status(201).json({ message: 'Historial creado correctamente', data: resultado });
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear el historial' });
+        res.status(500).json({ error: 'Error al crear el historial', detalles: error.message });
     }
 });
 
@@ -348,6 +417,8 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *     summary: Actualizar un registro del historial médico
  *     tags: [Historial]
  *     description: Actualiza la información de un registro específico del historial médico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -362,6 +433,12 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - animal_id
+ *               - fecha
+ *               - diagnostico
+ *               - tratamiento
+ *               - veterinario
  *             properties:
  *               animal_id:
  *                 type: integer
@@ -372,22 +449,22 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *                 format: date
  *                 description: Fecha del registro médico
  *                 example: "2025-12-05"
- *               descripcion:
+ *               diagnostico:
  *                 type: string
- *                 description: Descripción del problema o revisión médica
- *                 example: "Seguimiento post-vacunación"
+ *                 description: Diagnóstico médico del animal
+ *                 example: "Seguimiento post-tratamiento"
  *               tratamiento:
  *                 type: string
  *                 description: Tratamiento administrado o recomendado
- *                 example: "Revisión de efectos secundarios"
+ *                 example: "Revisión de evolución"
  *               veterinario:
  *                 type: string
  *                 description: Nombre del veterinario responsable
  *                 example: "Dra. López"
- *               notas_adicionales:
+ *               notas:
  *                 type: string
- *                 description: Notas adicionales o observaciones
- *                 example: "Sin complicaciones observadas"
+ *                 description: Notas adicionales u observaciones (opcional)
+ *                 example: "Infección en recuperación"
  *     responses:
  *       200:
  *         description: Registro de historial actualizado exitosamente
@@ -396,28 +473,29 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *             schema:
  *               type: object
  *               properties:
- *                 id_historial:
- *                   type: integer
- *                   example: 1
- *                 id_animal:
- *                   type: integer
- *                   example: 5
- *                 fecha:
+ *                 message:
  *                   type: string
- *                   format: date
- *                   example: "2025-12-05"
- *                 descripcion:
+ *                   example: "Historial actualizado correctamente"
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
  *                   type: string
- *                   example: "Seguimiento post-vacunación"
- *                 tratamiento:
+ *                   example: "Token no proporcionado o inválido"
+ *       403:
+ *         description: Acceso denegado - Solo ADMIN puede actualizar
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
  *                   type: string
- *                   example: "Revisión de efectos secundarios"
- *                 veterinario:
- *                   type: string
- *                   example: "Dra. López"
- *                 notas_adicionales:
- *                   type: string
- *                   example: "Sin complicaciones observadas"
+ *                   example: "Acceso denegado"
  *       404:
  *         description: Historial no encontrado
  *         content:
@@ -427,7 +505,7 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Historial no encontrado
+ *                   example: "Historial no encontrado"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -437,17 +515,19 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al actualizar el historial
+ *                   example: "Error al actualizar el historial"
  */
-// Actualizar un registro en el historial
-router.put('/:id', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), async (req, res) => {
+router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     const historialActualizado = req.body;
     try {
         const resultado = await historialService.actualizarHistorial(id, historialActualizado);
-        res.json(resultado);
+        if (!resultado) {
+            return res.status(404).json({ error: 'Historial no encontrado' });
+        }
+        res.json({ message: 'Historial actualizado correctamente' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el historial' });
+        res.status(500).json({ error: 'Error al actualizar el historial', detalles: error.message });
     }
 });
 
@@ -458,6 +538,8 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), async 
  *     summary: Eliminar un registro del historial médico
  *     tags: [Historial]
  *     description: Elimina permanentemente un registro del historial médico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -476,7 +558,27 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), async 
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Historial eliminado correctamente
+ *                   example: "Historial eliminado correctamente"
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Token no proporcionado o inválido"
+ *       403:
+ *         description: Acceso denegado - Solo ADMIN puede eliminar
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Acceso denegado"
  *       404:
  *         description: Historial no encontrado
  *         content:
@@ -486,7 +588,7 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), async 
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Historial no encontrado
+ *                   example: "Historial no encontrado"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -496,16 +598,18 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), async 
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al eliminar el historial
+ *                   example: "Error al eliminar el historial"
  */
-// Eliminar un registro del historial
 router.delete('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     try {
         const resultado = await historialService.eliminarHistorial(id);
-        res.json(resultado);
+        if (!resultado) {
+            return res.status(404).json({ error: 'Historial no encontrado' });
+        }
+        res.json({ message: 'Historial eliminado correctamente' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el historial' });
+        res.status(500).json({ error: 'Error al eliminar el historial', detalles: error.message });
     }
 });
 

@@ -12,12 +12,15 @@ const router = express.Router();
  *     summary: Obtener todas las tareas
  *     tags: [Tareas]
  *     description: Retorna la lista completa de tareas o filtra por estado si se proporciona
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: estado
  *         schema:
  *           type: string
- *         description: Filtrar tareas por estado (pendiente, en progreso, completada)
+ *           enum: [pendiente, en progreso, completada]
+ *         description: Filtrar tareas por estado
  *         example: "pendiente"
  *     responses:
  *       200:
@@ -41,88 +44,14 @@ const router = express.Router();
  *                   estado:
  *                     type: string
  *                     example: "pendiente"
+ *                   prioridad:
+ *                     type: string
+ *                     example: "alta"
  *                   fecha_creacion:
  *                     type: string
  *                     format: date-time
  *                     example: "2025-12-05T10:30:00Z"
- *                   fecha_vencimiento:
- *                     type: string
- *                     format: date
- *                     example: "2025-12-10"
- *                   id_voluntario:
- *                     type: integer
- *                     example: 3
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Error al obtener las tareas
- */
-// Ruta para obtener todas las tareas
-router.get('/', async (req, res) => {
-    try {
-        const estado = req.query.estado;
-        let tareas;
-        if (estado) {
-            tareas = await tareasService.getTareaPorEstado(estado);
-        } else {
-            tareas = await tareasService.getTareas();
-        }
-        res.json(tareas);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-/**
- * @swagger
- * /api/tareas/{id}:
- *   get:
- *     summary: Obtener tareas por voluntario
- *     tags: [Tareas]
- *     description: Retorna todas las tareas asignadas a un voluntario específico
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del voluntario
- *         example: 3
- *     responses:
- *       200:
- *         description: Tareas del voluntario obtenidas exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id_tarea:
- *                     type: integer
- *                     example: 1
- *                   titulo:
- *                     type: string
- *                     example: "Alimentar a los animales"
- *                   descripcion:
- *                     type: string
- *                     example: "Dar comida a todos los perros del refugio"
- *                   estado:
- *                     type: string
- *                     example: "en progreso"
- *                   fecha_creacion:
- *                     type: string
- *                     format: date-time
- *                     example: "2025-12-05T10:30:00Z"
- *                   fecha_vencimiento:
+ *                   fecha_limite:
  *                     type: string
  *                     format: date
  *                     example: "2025-12-10"
@@ -160,8 +89,211 @@ router.get('/', async (req, res) => {
  *                   type: string
  *                   example: Error al obtener las tareas
  */
-// Ruta para obtener tareas por voluntario
-router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
+router.get('/', [verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO'])], async (req, res) => {
+    try {
+        const estado = req.query.estado;
+        let tareas;
+        if (estado) {
+            tareas = await tareasService.getTareaPorEstado(estado);
+        } else {
+            tareas = await tareasService.getTareas();
+        }
+        res.json(tareas);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
+ * /api/tareas/{id}:
+ *   get:
+ *     summary: Obtener una tarea por ID
+ *     tags: [Tareas]
+ *     description: Retorna una tarea específica por su ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la tarea
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Tarea obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id_tarea:
+ *                   type: integer
+ *                   example: 1
+ *                 titulo:
+ *                   type: string
+ *                   example: "Alimentar a los animales"
+ *                 descripcion:
+ *                   type: string
+ *                   example: "Dar comida a todos los perros del refugio"
+ *                 estado:
+ *                   type: string
+ *                   example: "pendiente"
+ *                 prioridad:
+ *                   type: string
+ *                   example: "alta"
+ *                 fecha_creacion:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-12-05T10:30:00Z"
+ *                 fecha_limite:
+ *                   type: string
+ *                   format: date
+ *                   example: "2025-12-10"
+ *                 id_voluntario:
+ *                   type: integer
+ *                   example: 3
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Token no proporcionado
+ *       403:
+ *         description: Acceso prohibido - Rol insuficiente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Acceso denegado
+ *       404:
+ *         description: Tarea no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Tarea no encontrada
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error al obtener la tarea
+ */
+router.get('/:id', [verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO'])], async (req, res) => {
+    const { id } = req.params;
+    try {
+        const tarea = await tareasService.getTareaPorId(id);
+        if (!tarea) {
+            return res.status(404).json({ error: 'Tarea no encontrada' });
+        }
+        res.json(tarea);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
+ * /api/tareas/voluntario/{id}:
+ *   get:
+ *     summary: Obtener tareas por voluntario
+ *     tags: [Tareas]
+ *     description: Retorna todas las tareas asignadas a un voluntario específico
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del voluntario
+ *         example: 3
+ *     responses:
+ *       200:
+ *         description: Tareas del voluntario obtenidas exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id_tarea:
+ *                     type: integer
+ *                     example: 1
+ *                   titulo:
+ *                     type: string
+ *                     example: "Alimentar a los animales"
+ *                   descripcion:
+ *                     type: string
+ *                     example: "Dar comida a todos los perros del refugio"
+ *                   estado:
+ *                     type: string
+ *                     example: "en progreso"
+ *                   prioridad:
+ *                     type: string
+ *                     example: "alta"
+ *                   fecha_creacion:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-12-05T10:30:00Z"
+ *                   fecha_limite:
+ *                     type: string
+ *                     format: date
+ *                     example: "2025-12-10"
+ *                   id_voluntario:
+ *                     type: integer
+ *                     example: 3
+ *       401:
+ *         description: No autorizado - Token inválido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Token no proporcionado
+ *       403:
+ *         description: Acceso prohibido - Rol insuficiente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Acceso denegado
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error al obtener las tareas
+ */
+router.get('/voluntario/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
     const { id } = req.params;
     try {
         const tareas = await tareasService.getTareasPorVoluntario(id);
@@ -189,7 +321,9 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *             required:
  *               - titulo
  *               - descripcion
- *               - fecha_vencimiento
+ *               - estado
+ *               - prioridad
+ *               - fecha_limite
  *               - id_voluntario
  *             properties:
  *               titulo:
@@ -200,10 +334,20 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *                 type: string
  *                 description: Descripción detallada de la tarea
  *                 example: "Dar comida a todos los perros del refugio"
- *               fecha_vencimiento:
+ *               estado:
+ *                 type: string
+ *                 enum: [pendiente, en progreso, completada]
+ *                 description: Estado de la tarea
+ *                 example: "pendiente"
+ *               prioridad:
+ *                 type: string
+ *                 enum: [baja, media, alta]
+ *                 description: Prioridad de la tarea
+ *                 example: "alta"
+ *               fecha_limite:
  *                 type: string
  *                 format: date
- *                 description: Fecha de vencimiento de la tarea
+ *                 description: Fecha límite de vencimiento de la tarea
  *                 example: "2025-12-10"
  *               id_voluntario:
  *                 type: integer
@@ -217,29 +361,12 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *             schema:
  *               type: object
  *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Tarea creada correctamente"
  *                 id_tarea:
  *                   type: integer
  *                   example: 5
- *                 titulo:
- *                   type: string
- *                   example: "Alimentar a los animales"
- *                 descripcion:
- *                   type: string
- *                   example: "Dar comida a todos los perros del refugio"
- *                 estado:
- *                   type: string
- *                   example: "pendiente"
- *                 fecha_creacion:
- *                   type: string
- *                   format: date-time
- *                   example: "2025-12-05T10:30:00Z"
- *                 fecha_vencimiento:
- *                   type: string
- *                   format: date
- *                   example: "2025-12-10"
- *                 id_voluntario:
- *                   type: integer
- *                   example: 3
  *       400:
  *         description: Datos de entrada inválidos
  *         content:
@@ -249,7 +376,7 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Datos incompletos o inválidos
+ *                   example: "No se pudo crear la tarea"
  *       401:
  *         description: No autorizado - Token inválido o faltante
  *         content:
@@ -259,7 +386,7 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Token no proporcionado
+ *                   example: "Token no proporcionado o inválido"
  *       403:
  *         description: Acceso prohibido - Solo administradores pueden crear tareas
  *         content:
@@ -269,7 +396,7 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Acceso denegado
+ *                   example: "Acceso denegado"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -279,14 +406,16 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al crear la tarea
+ *                   example: "Error al crear la tarea"
  */
-// Ruta para crear una nueva tarea
 router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
     try {
         const nuevaTarea = req.body;
         const resultado = await tareasService.crearTarea(nuevaTarea);
-        res.status(201).json(resultado);
+        if (!resultado || resultado.affectedRows === 0) {
+            return res.status(400).json({ error: 'No se pudo crear la tarea' });
+        }
+        res.status(201).json({ message: 'Tarea creada correctamente' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -315,7 +444,18 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - id_voluntario
+ *               - titulo
+ *               - descripcion
+ *               - estado
+ *               - prioridad
+ *               - fecha_limite
  *             properties:
+ *               id_voluntario:
+ *                 type: integer
+ *                 description: ID del voluntario asignado
+ *                 example: 3
  *               titulo:
  *                 type: string
  *                 description: Título de la tarea
@@ -326,18 +466,19 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *                 example: "Dar comida a todos los perros y gatos del refugio"
  *               estado:
  *                 type: string
- *                 description: Estado actual de la tarea
  *                 enum: [pendiente, en progreso, completada]
+ *                 description: Estado actual de la tarea
  *                 example: "en progreso"
- *               fecha_vencimiento:
+ *               prioridad:
+ *                 type: string
+ *                 enum: [baja, media, alta]
+ *                 description: Prioridad de la tarea
+ *                 example: "media"
+ *               fecha_limite:
  *                 type: string
  *                 format: date
- *                 description: Fecha de vencimiento de la tarea
+ *                 description: Fecha límite de vencimiento de la tarea
  *                 example: "2025-12-15"
- *               id_voluntario:
- *                 type: integer
- *                 description: ID del voluntario asignado
- *                 example: 3
  *     responses:
  *       200:
  *         description: Tarea actualizada exitosamente
@@ -346,39 +487,9 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id_tarea:
- *                   type: integer
- *                   example: 1
- *                 titulo:
+ *                 message:
  *                   type: string
- *                   example: "Alimentar a los animales - Actualizado"
- *                 descripcion:
- *                   type: string
- *                   example: "Dar comida a todos los perros y gatos del refugio"
- *                 estado:
- *                   type: string
- *                   example: "en progreso"
- *                 fecha_creacion:
- *                   type: string
- *                   format: date-time
- *                   example: "2025-12-05T10:30:00Z"
- *                 fecha_vencimiento:
- *                   type: string
- *                   format: date
- *                   example: "2025-12-15"
- *                 id_voluntario:
- *                   type: integer
- *                   example: 3
- *       400:
- *         description: Datos de entrada inválidos
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Datos incompletos o inválidos
+ *                   example: "Tarea actualizada correctamente"
  *       401:
  *         description: No autorizado - Token inválido o faltante
  *         content:
@@ -388,7 +499,7 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Token no proporcionado
+ *                   example: "Token no proporcionado o inválido"
  *       403:
  *         description: Acceso prohibido - Solo administradores pueden actualizar tareas
  *         content:
@@ -398,7 +509,7 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Acceso denegado
+ *                   example: "Acceso denegado"
  *       404:
  *         description: Tarea no encontrada
  *         content:
@@ -408,7 +519,7 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Tarea no encontrada
+ *                   example: "Tarea no encontrada"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -418,15 +529,17 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al actualizar la tarea
+ *                   example: "Error al actualizar la tarea"
  */
-// Ruta para actualizar una tarea existente
 router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     try {
         const tareaActualizada = req.body;
         const resultado = await tareasService.actualizarTarea(id, tareaActualizada);
-        res.json(resultado);
+        if (!resultado || resultado.affectedRows === 0) {
+            return res.status(404).json({ error: 'Tarea no encontrada' });
+        }
+        res.json({ message: 'Tarea actualizada correctamente' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -459,7 +572,7 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Tarea eliminada correctamente
+ *                   example: "Tarea eliminada correctamente"
  *       401:
  *         description: No autorizado - Token inválido o faltante
  *         content:
@@ -469,7 +582,7 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Token no proporcionado
+ *                   example: "Token no proporcionado o inválido"
  *       403:
  *         description: Acceso prohibido - Solo administradores pueden eliminar tareas
  *         content:
@@ -479,7 +592,7 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Acceso denegado
+ *                   example: "Acceso denegado"
  *       404:
  *         description: Tarea no encontrada
  *         content:
@@ -489,7 +602,7 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Tarea no encontrada
+ *                   example: "Tarea no encontrada"
  *       500:
  *         description: Error interno del servidor
  *         content:
@@ -499,14 +612,16 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al eliminar la tarea
+ *                   example: "Error al eliminar la tarea"
  */
-// Ruta para eliminar una tarea
 router.delete('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     try {
         const resultado = await tareasService.eliminarTarea(id);
-        res.json(resultado);
+        if (!resultado || resultado.affectedRows === 0) {
+            return res.status(404).json({ error: 'Tarea no encontrada' });
+        }
+        res.json({ message: 'Tarea eliminada correctamente' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
