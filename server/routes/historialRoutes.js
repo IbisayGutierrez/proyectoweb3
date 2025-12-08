@@ -77,7 +77,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const historial = await historialService.getHistorial();
         res.json(historial);
@@ -174,7 +174,7 @@ router.get('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (r
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
+router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const historial = await historialService.getHistorialPorId(id);
@@ -278,7 +278,7 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async
  *                   type: string
  *                   example: "Error al obtener el historial del animal"
  */
-router.get('/animal/:id_animal', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
+router.get('/animal/:id_animal', async (req, res) => {
     const { id_animal } = req.params;
     try {
         const historial = await historialService.getHistorialPorAnimal(id_animal);
