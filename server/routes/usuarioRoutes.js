@@ -257,7 +257,7 @@ router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
 router.post('/registro', async (req, res) => {
     try {
         const nuevoUsuario = await usuarioService.crearUsuario(req.body);
-        res.status(201).json(nuevoUsuario);
+        res.status(201).json({ message: 'Usuario creado correctamente', usuario: nuevoUsuario });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el usuario' });
     }
@@ -465,7 +465,7 @@ router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Usuario desactivado exitosamente
+ *                   example: Usuario eliminado exitosamente
  *       404:
  *         description: Usuario no encontrado
  *         content:
@@ -485,14 +485,14 @@ router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Error al desactivar el usuario
+ *                   example: Error al eliminar el usuario
  */
 router.delete('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
     try {
         await usuarioService.eliminarUsuario(req.params.id);
-        res.json({ message: 'Usuario desactivado exitosamente' });
+        res.json({ message: 'Usuario eliminado exitosamente' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al desactivar el usuario' });
+        res.status(500).json({ error: 'Error al eliminar el usuario' });
     }
 });
 
