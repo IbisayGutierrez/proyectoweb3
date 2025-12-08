@@ -8,7 +8,7 @@ export const login = async (correo, contrasena) => {
     }
     const token = jwt.sign(
         {
-            id: usuario.id,
+            id: usuario.id_usuario,
             correo: usuario.correo,
             rol: usuario.rol
         },

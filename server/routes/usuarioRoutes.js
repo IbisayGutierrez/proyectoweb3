@@ -250,7 +250,7 @@ router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  */
 
 //queda sin verificacion como ruta publica para permitir el registro de nuevos usuarios
-router.post('/register', async (req, res) => {
+router.post('/registro', async (req, res) => {
     try {
         const nuevoUsuario = await usuarioService.crearUsuario(req.body);
         res.status(201).json(nuevoUsuario);

@@ -1,11 +1,14 @@
 
 
 export const rolMiddleware = (...roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.usuario.rol)) {
-            return res.status(403).json({ message: 'Token invalido' });
-
-        }
-        next();
-    };
+  const allowedRoles = roles.flat(); // soporta 'ADMIN' o ['ADMIN', 'VOLUNTARIO']
+  return (req, res, next) => {
+    if (!req.usuario?.rol) {
+      return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+    if (!allowedRoles.includes(req.usuario.rol)) {
+      return res.status(403).json({ message: 'Acceso no autorizado' });
+    }
+    next();
+  };
 };
