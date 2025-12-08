@@ -12,8 +12,6 @@ const router = express.Router();
  *     summary: Obtener todo el historial médico
  *     tags: [Historial]
  *     description: Retorna la lista completa de registros del historial médico de todos los animales
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Historial obtenido exitosamente
@@ -93,8 +91,6 @@ router.get('/', async (req, res) => {
  *     summary: Obtener un registro del historial por ID
  *     tags: [Historial]
  *     description: Retorna la información detallada de un registro específico del historial médico
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -195,8 +191,6 @@ router.get('/:id', async (req, res) => {
  *     summary: Obtener historial médico de un animal específico
  *     tags: [Historial]
  *     description: Retorna todos los registros del historial médico de un animal específico
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id_animal
