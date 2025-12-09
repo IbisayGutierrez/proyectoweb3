@@ -1,7 +1,8 @@
 import express from 'express';
-import { rolMiddleware } from '../middleware/rolMiddleware.js';
-import { verificarToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware as checkRole } from '../middleware/rolMiddleware.js';
+import { verificarToken as authenticateToken } from '../middleware/loginMiddleware.js';
 import * as historialService from '../services/historialService.js';
+import HistorialController from '../controllers/historialController.js';
 
 const router = express.Router();
 
@@ -75,14 +76,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/', async (req, res) => {
-    try {
-        const historial = await historialService.getHistorial();
-        res.json(historial);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el historial', detalles: error.message });
-    }
-});
+router.get('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.listar(req, res));
 
 /**
  * @swagger
@@ -170,19 +164,7 @@ router.get('/', async (req, res) => {
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const historial = await historialService.getHistorialPorId(id);
-        if (historial) {
-            res.json(historial);
-        } else {
-            res.status(404).json({ error: 'Historial no encontrado' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el historial', detalles: error.message });
-    }
-});
+router.get('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.obtenerPorId(req, res));
 
 /**
  * @swagger
@@ -272,19 +254,7 @@ router.get('/:id', async (req, res) => {
  *                   type: string
  *                   example: "Error al obtener el historial del animal"
  */
-router.get('/animal/:id_animal', async (req, res) => {
-    const { id_animal } = req.params;
-    try {
-        const historial = await historialService.getHistorialPorAnimal(id_animal);
-        if (historial && historial.length > 0) {
-            res.json(historial);
-        } else {
-            res.status(404).json({ error: 'No hay historial para este animal' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el historial del animal', detalles: error.message });
-    }
-});
+router.get('/animal/:id_animal', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.listarPorAnimal(req, res));
 
 /**
  * @swagger
@@ -391,18 +361,7 @@ router.get('/animal/:id_animal', async (req, res) => {
  *                   type: string
  *                   example: "Error al crear el historial"
  */
-router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
-    const nuevoHistorial = req.body;
-    try {
-        const resultado = await historialService.crearHistorial(nuevoHistorial);
-        if (!resultado) {
-            return res.status(400).json({ error: 'Datos incompletos o inválidos' });
-        }
-        res.status(201).json({ message: 'Historial creado correctamente', data: resultado });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al crear el historial', detalles: error.message });
-    }
-});
+router.post('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.crear(req, res));
 
 /**
  * @swagger
@@ -511,19 +470,7 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (
  *                   type: string
  *                   example: "Error al actualizar el historial"
  */
-router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
-    const { id } = req.params;
-    const historialActualizado = req.body;
-    try {
-        const resultado = await historialService.actualizarHistorial(id, historialActualizado);
-        if (!resultado) {
-            return res.status(404).json({ error: 'Historial no encontrado' });
-        }
-        res.json({ message: 'Historial actualizado correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el historial', detalles: error.message });
-    }
-});
+router.put('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => HistorialController.actualizar(req, res));
 
 /**
  * @swagger
@@ -594,17 +541,6 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *                   type: string
  *                   example: "Error al eliminar el historial"
  */
-router.delete('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
-    const { id } = req.params;
-    try {
-        const resultado = await historialService.eliminarHistorial(id);
-        if (!resultado) {
-            return res.status(404).json({ error: 'Historial no encontrado' });
-        }
-        res.json({ message: 'Historial eliminado correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el historial', detalles: error.message });
-    }
-});
+router.delete('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => HistorialController.eliminar(req, res));
 
 export default router;

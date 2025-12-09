@@ -185,7 +185,6 @@ router.post('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO', 'ADOPTANTE
  *       500:
  *         description: Error al actualizar la solicitud
  */
-// Protegido: actualizar estado/observaciones (ADMIN y VOLUNTARIO)
 router.put('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), SolicitudesController.actualizar);
 
 /**
@@ -215,7 +214,7 @@ router.put('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), Solici
  *       500:
  *         description: Error al desactivar la solicitud
  */
-// Protegido: desactivar solicitud (ADMIN)
+
 router.delete('/:id', authenticateToken, checkRole(['ADMIN']), SolicitudesController.desactivar);
 
 export default router;

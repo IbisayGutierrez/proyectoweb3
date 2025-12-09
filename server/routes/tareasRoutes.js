@@ -1,7 +1,8 @@
 import express from 'express';
 import * as tareasService from '../services/tareasService.js';
-import { verificarToken } from '../middleware/loginMiddleware.js';
-import { rolMiddleware } from '../middleware/rolMiddleware.js';
+import { verificarToken as authenticateToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware as checkRole } from '../middleware/rolMiddleware.js';
+import TareasController from '../controllers/tareasController.js';
 
 const router = express.Router();
 
@@ -89,20 +90,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Error al obtener las tareas
  */
-router.get('/', [verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO'])], async (req, res) => {
-    try {
-        const estado = req.query.estado;
-        let tareas;
-        if (estado) {
-            tareas = await tareasService.getTareaPorEstado(estado);
-        } else {
-            tareas = await tareasService.getTareas();
-        }
-        res.json(tareas);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.get('/', [authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO'])], (req, res) => TareasController.listar(req, res));
 
 /**
  * @swagger
@@ -196,18 +184,7 @@ router.get('/', [verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO'])], async 
  *                   type: string
  *                   example: Error al obtener la tarea
  */
-router.get('/:id', [verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO'])], async (req, res) => {
-    const { id } = req.params;
-    try {
-        const tarea = await tareasService.getTareaPorId(id);
-        if (!tarea) {
-            return res.status(404).json({ error: 'Tarea no encontrada' });
-        }
-        res.json(tarea);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.get('/:id', [authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO'])], (req, res) => TareasController.obtenerPorId(req, res));
 
 /**
  * @swagger
@@ -293,15 +270,7 @@ router.get('/:id', [verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO'])], asy
  *                   type: string
  *                   example: Error al obtener las tareas
  */
-router.get('/voluntario/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), async (req, res) => {
-    const { id } = req.params;
-    try {
-        const tareas = await tareasService.getTareasPorVoluntario(id);
-        res.json(tareas);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.get('/voluntario/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => TareasController.listarPorVoluntario(req, res));
 
 /**
  * @swagger
@@ -408,18 +377,7 @@ router.get('/voluntario/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARI
  *                   type: string
  *                   example: "Error al crear la tarea"
  */
-router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
-    try {
-        const nuevaTarea = req.body;
-        const resultado = await tareasService.crearTarea(nuevaTarea);
-        if (!resultado || resultado.affectedRows === 0) {
-            return res.status(400).json({ error: 'No se pudo crear la tarea' });
-        }
-        res.status(201).json({ message: 'Tarea creada correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.post('/', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasController.crear(req, res));
 
 /**
  * @swagger
@@ -531,19 +489,7 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
  *                   type: string
  *                   example: "Error al actualizar la tarea"
  */
-router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
-    const { id } = req.params;
-    try {
-        const tareaActualizada = req.body;
-        const resultado = await tareasService.actualizarTarea(id, tareaActualizada);
-        if (!resultado || resultado.affectedRows === 0) {
-            return res.status(404).json({ error: 'Tarea no encontrada' });
-        }
-        res.json({ message: 'Tarea actualizada correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.put('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasController.actualizar(req, res));
 
 /**
  * @swagger
@@ -614,17 +560,6 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) =>
  *                   type: string
  *                   example: "Error al eliminar la tarea"
  */
-router.delete('/:id', verificarToken, rolMiddleware(['ADMIN']), async (req, res) => {
-    const { id } = req.params;
-    try {
-        const resultado = await tareasService.eliminarTarea(id);
-        if (!resultado || resultado.affectedRows === 0) {
-            return res.status(404).json({ error: 'Tarea no encontrada' });
-        }
-        res.json({ message: 'Tarea eliminada correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+router.delete('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasController.eliminar(req, res));
 
 export default router;
