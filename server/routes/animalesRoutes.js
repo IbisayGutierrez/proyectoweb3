@@ -1,7 +1,7 @@
 import express from 'express';
 import AnimalesController from '../controllers/animalesController.js';
-import { verificarToken } from '../middleware/loginMiddleware.js';
-import { rolMiddleware } from '../middleware/rolMiddleware.js';
+import { verificarToken as authenticateToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware as checkRole } from '../middleware/rolMiddleware.js';
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ const router = express.Router();
  *       500:
  *         description: Error al obtener los animales
  */
-router.get('/', (req, res) => AnimalesController.listar(req, res));
+router.get('/', AnimalesController.listar);
 
 /**
  * @swagger
@@ -61,7 +61,8 @@ router.get('/', (req, res) => AnimalesController.listar(req, res));
  *       500:
  *         description: Error al obtener el animal
  */
-router.get('/:id', (req, res) => AnimalesController.obtenerPorId(req, res));
+router.get('/:id', AnimalesController.obtenerPorId);
+
 
 /**
  * @swagger
@@ -123,7 +124,7 @@ router.get('/:id', (req, res) => AnimalesController.obtenerPorId(req, res));
  *       500:
  *         description: Error al crear el animal
  */
-router.post('/crear', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), (req, res) => AnimalesController.crear(req, res));
+router.post('/crear', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), AnimalesController.crear);
 
 /**
  * @swagger
@@ -188,7 +189,7 @@ router.post('/crear', verificarToken, rolMiddleware(['ADMIN','VOLUNTARIO']), (re
  *       500:
  *         description: Error al actualizar el animal
  */
-router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), (req, res) => AnimalesController.actualizar(req, res));
+router.put('/:id', authenticateToken, checkRole(['ADMIN']), AnimalesController.actualizar);
 
 /**
  * @swagger
@@ -217,6 +218,6 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN']), (req, res) => Anima
  *       500:
  *         description: Error al desactivar el animal
  */
-router.delete('/:id', verificarToken, rolMiddleware(['ADMIN']), (req, res) => AnimalesController.desactivar(req, res));
+router.delete('/:id', authenticateToken, checkRole(['ADMIN']), AnimalesController.desactivar);
 
 export default router;

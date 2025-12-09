@@ -1,6 +1,6 @@
 import express from 'express';
-import { verificarToken } from '../middleware/loginMiddleware.js';
-import { rolMiddleware } from '../middleware/rolMiddleware.js';
+import { verificarToken as authenticateToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware as checkRole } from '../middleware/rolMiddleware.js';
 import SolicitudesController from '../controllers/solicitudesController.js';
 
 const router = express.Router();
@@ -38,7 +38,8 @@ const router = express.Router();
  *       500:
  *         description: Error al obtener las solicitudes
  */
-router.get('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), (req, res) => SolicitudesController.listar(req, res));
+// Protegido: listar todas las solicitudes (ADMIN y VOLUNTARIO)
+router.get('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), SolicitudesController.listar);
 
 /**
  * @swagger
@@ -63,7 +64,8 @@ router.get('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), (req, re
  *       500:
  *         description: Error al obtener tus solicitudes
  */
-router.get('/mias', verificarToken , (req, res) => SolicitudesController.listarMias(req, res));
+// Protegido: listar solicitudes del usuario autenticado
+router.get('/mias', authenticateToken, SolicitudesController.listarMias);
 
 /**
  * @swagger
@@ -98,7 +100,8 @@ router.get('/mias', verificarToken , (req, res) => SolicitudesController.listarM
  *       500:
  *         description: Error al obtener la solicitud
  */
-router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), (req, res) => SolicitudesController.obtenerPorId(req, res));
+// Protegido: obtener solicitud por id (ADMIN y VOLUNTARIO)
+router.get('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), SolicitudesController.obtenerPorId);
 
 /**
  * @swagger
@@ -138,7 +141,8 @@ router.get('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), (req,
  *       500:
  *         description: Error al crear la solicitud
  */
-router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO', 'ADOPTANTE']), (req, res) => SolicitudesController.crear(req, res));
+// Protegido: crear solicitud (ADMIN, VOLUNTARIO, ADOPTANTE)
+router.post('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO', 'ADOPTANTE']), SolicitudesController.crear);
 
 /**
  * @swagger
@@ -181,7 +185,8 @@ router.post('/', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO', 'ADOPTANT
  *       500:
  *         description: Error al actualizar la solicitud
  */
-router.put('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), (req, res) => SolicitudesController.actualizar(req, res));
+// Protegido: actualizar estado/observaciones (ADMIN y VOLUNTARIO)
+router.put('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), SolicitudesController.actualizar);
 
 /**
  * @swagger
@@ -210,6 +215,7 @@ router.put('/:id', verificarToken, rolMiddleware(['ADMIN', 'VOLUNTARIO']), (req,
  *       500:
  *         description: Error al desactivar la solicitud
  */
-router.delete('/:id', verificarToken, rolMiddleware(['ADMIN']), (req, res) => SolicitudesController.desactivar(req, res));
+// Protegido: desactivar solicitud (ADMIN)
+router.delete('/:id', authenticateToken, checkRole(['ADMIN']), SolicitudesController.desactivar);
 
 export default router;
