@@ -76,7 +76,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.listar);
+router.get('/', HistorialController.listar);
 /**
  * @swagger
  * /api/historial/{id}:
@@ -163,7 +163,7 @@ router.get('/', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialC
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/:id', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.obtenerPorId);
+router.get('/:id',  HistorialController.obtenerPorId);
 /**
  * @swagger
  * /api/historial/animal/{id_animal}:
@@ -252,7 +252,7 @@ router.get('/:id', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), Histori
  *                   type: string
  *                   example: "Error al obtener el historial del animal"
  */
-router.get('/animal/:id_animal', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.listarPorAnimal);
+router.get('/animal/:id_animal',  HistorialController.listarPorAnimal);
 /**
  * @swagger
  * /api/historial:
