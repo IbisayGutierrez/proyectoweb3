@@ -1,5 +1,4 @@
 import express from 'express';
-import * as tareasService from '../services/tareasService.js';
 import { verificarToken as authenticateToken } from '../middleware/loginMiddleware.js';
 import { rolMiddleware as checkRole } from '../middleware/rolMiddleware.js';
 import TareasController from '../controllers/tareasController.js';
@@ -90,7 +89,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Error al obtener las tareas
  */
-router.get('/', [authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO'])], (req, res) => TareasController.listar(req, res));
+router.get('/', [authenticateToken, checkRole(['ADMIN','VOLUNTARIO'])], TareasController.listar);
 
 /**
  * @swagger
@@ -184,7 +183,7 @@ router.get('/', [authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO'])], (req, r
  *                   type: string
  *                   example: Error al obtener la tarea
  */
-router.get('/:id', [authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO'])], (req, res) => TareasController.obtenerPorId(req, res));
+router.get('/:id', [authenticateToken, checkRole(['ADMIN','VOLUNTARIO'])], TareasController.obtenerPorId);
 
 /**
  * @swagger
@@ -270,8 +269,7 @@ router.get('/:id', [authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO'])], (req
  *                   type: string
  *                   example: Error al obtener las tareas
  */
-router.get('/voluntario/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => TareasController.listarPorVoluntario(req, res));
-
+router.get('/voluntario/:id', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), TareasController.listarPorVoluntario);
 /**
  * @swagger
  * /api/tareas:
@@ -377,8 +375,7 @@ router.get('/voluntario/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO
  *                   type: string
  *                   example: "Error al crear la tarea"
  */
-router.post('/', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasController.crear(req, res));
-
+router.post('/', authenticateToken, checkRole(['ADMIN']), TareasController.crear);
 /**
  * @swagger
  * /api/tareas/{id}:
@@ -489,8 +486,7 @@ router.post('/', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasCo
  *                   type: string
  *                   example: "Error al actualizar la tarea"
  */
-router.put('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasController.actualizar(req, res));
-
+router.put('/:id', authenticateToken, checkRole(['ADMIN']), TareasController.actualizar);
 /**
  * @swagger
  * /api/tareas/{id}:
@@ -560,6 +556,5 @@ router.put('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => Tareas
  *                   type: string
  *                   example: "Error al eliminar la tarea"
  */
-router.delete('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => TareasController.eliminar(req, res));
-
+router.delete('/:id', authenticateToken, checkRole(['ADMIN']), TareasController.eliminar);
 export default router;

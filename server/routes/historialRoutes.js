@@ -76,8 +76,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.listar(req, res));
-
+router.get('/', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.listar);
 /**
  * @swagger
  * /api/historial/{id}:
@@ -164,8 +163,7 @@ router.get('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res
  *                   type: string
  *                   example: "Error al obtener el historial"
  */
-router.get('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.obtenerPorId(req, res));
-
+router.get('/:id', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.obtenerPorId);
 /**
  * @swagger
  * /api/historial/animal/{id_animal}:
@@ -254,8 +252,7 @@ router.get('/:id', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, 
  *                   type: string
  *                   example: "Error al obtener el historial del animal"
  */
-router.get('/animal/:id_animal', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.listarPorAnimal(req, res));
-
+router.get('/animal/:id_animal', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.listarPorAnimal);
 /**
  * @swagger
  * /api/historial:
@@ -361,8 +358,7 @@ router.get('/animal/:id_animal', authenticateToken, checkRole(['ADMIN', 'VOLUNTA
  *                   type: string
  *                   example: "Error al crear el historial"
  */
-router.post('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, res) => HistorialController.crear(req, res));
-
+router.post('/', authenticateToken, checkRole(['ADMIN','VOLUNTARIO']), HistorialController.crear);
 /**
  * @swagger
  * /api/historial/{id}:
@@ -470,8 +466,7 @@ router.post('/', authenticateToken, checkRole(['ADMIN', 'VOLUNTARIO']), (req, re
  *                   type: string
  *                   example: "Error al actualizar el historial"
  */
-router.put('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => HistorialController.actualizar(req, res));
-
+router.put('/:id', authenticateToken, checkRole(['ADMIN']), HistorialController.actualizar);
 /**
  * @swagger
  * /api/historial/{id}:
@@ -541,6 +536,5 @@ router.put('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => Histor
  *                   type: string
  *                   example: "Error al eliminar el historial"
  */
-router.delete('/:id', authenticateToken, checkRole(['ADMIN']), (req, res) => HistorialController.eliminar(req, res));
-
+router.delete('/:id', authenticateToken, checkRole(['ADMIN']), HistorialController.eliminar);
 export default router;
