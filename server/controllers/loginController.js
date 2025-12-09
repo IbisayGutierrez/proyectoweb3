@@ -1,7 +1,6 @@
 import * as loginService from '../services/loginService.js';
 import { logEvent } from '../utils/logger.js';
 
-// Controlador para manejar el login
 
 export const iniciarSesion = async (req, res) => {
     const { correo, password } = req.body;
