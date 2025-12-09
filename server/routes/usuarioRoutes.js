@@ -1,7 +1,7 @@
 import express from 'express';
-import * as usuarioService from '../services/usuariosService.js';
-import { verificarToken } from '../middleware/loginMiddleware.js';
-import { rolMiddleware } from '../middleware/rolMiddleware.js';
+import * as usuarioController from '../controllers/usuarioController.js';
+import {verificarToken} from '../middleware/loginMiddleware.js';
+import {rolMiddleware} from '../middleware/rolMiddleware.js';
 
 const router = express.Router();
 
@@ -60,14 +60,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Error al obtener los usuarios
  */
-router.get('/', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
-    try {
-        const usuarios = await usuarioService.getUsuarios();
-        res.json(usuarios);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los usuarios' });
-    }
-});
+router.get('/', verificarToken, rolMiddleware('ADMIN'), usuarioController.obtenerUsuarios);
 
 /**
  * @swagger
@@ -140,18 +133,7 @@ router.get('/', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *                   type: string
  *                   example: Error al obtener el usuario
  */
-router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
-    try {
-        const usuario = await usuarioService.getUsuarioPorId(req.params.id);
-        if (usuario) {
-            res.json(usuario);
-        } else {
-            res.status(404).json({ error: 'Usuario no encontrado' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el usuario' });
-    }
-});
+router.get('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.obtenerUsuarioPorId);
 
 /**
  * @swagger
@@ -254,14 +236,7 @@ router.get('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  */
 
 //queda sin verificacion como ruta publica para permitir el registro de nuevos usuarios
-router.post('/registro', async (req, res) => {
-    try {
-        const nuevoUsuario = await usuarioService.crearUsuario(req.body);
-        res.status(201).json({ message: 'Usuario creado correctamente', usuario: nuevoUsuario });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al crear el usuario' });
-    }
-});
+router.post('/register', usuarioController.registrarUsuario);
 
 /**
  * @swagger
@@ -341,14 +316,7 @@ router.post('/registro', async (req, res) => {
  *                   type: string
  *                   example: Error al actualizar el usuario
  */
-router.put('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
-    try {
-        await usuarioService.actualizarUsuario(req.params.id, req.body);
-        res.json({ message: 'Usuario actualizado exitosamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el usuario' });
-    }
-});
+router.put('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.actualizarUsuario);
 
 /**
  * @swagger
@@ -423,20 +391,7 @@ router.put('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
  *                   type: string
  *                   example: Error al cambiar la contraseña
  */
-router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
-    try {
-        const { password } = req.body;
-        
-        if (!password || password.trim() === '') {
-            return res.status(400).json({ error: 'La contraseña es requerida' });
-        }
-        
-        await usuarioService.cambiarContrasena(req.params.id, password);
-        res.json({ message: 'Contraseña actualizada exitosamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al cambiar la contraseña' });
-    }
-});
+router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), usuarioController.cambiarContrasena);
 
 /**
  * @swagger
@@ -487,13 +442,6 @@ router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), async (req
  *                   type: string
  *                   example: Error al eliminar el usuario
  */
-router.delete('/:id', verificarToken, rolMiddleware('ADMIN'), async (req, res) => {
-    try {
-        await usuarioService.eliminarUsuario(req.params.id);
-        res.json({ message: 'Usuario eliminado exitosamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el usuario' });
-    }
-});
+router.delete('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.eliminarUsuario);
 
 export default router;
