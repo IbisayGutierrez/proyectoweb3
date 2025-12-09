@@ -1,10 +1,5 @@
 import pool from '../db/conexion.js';
 
-// Modelo para interactuar con la tabla usuarios
-
-
-  // Aquí podrían ir métodos específicos si se usa una clase
-
 // Obtener todos los usuarios desde la vista
 export const obtenerTodosLosUsuarios = async () => {
     const [rows] = await pool.query('SELECT * FROM vw_usuarios');
