@@ -1,62 +1,21 @@
-import pool from '../db/conexion.js';
+import AnimalesModel from '../models/animalesModel.js';
 
 export const getAnimales = async (estado) => {
-	if (estado) {
-		const [rows] = await pool.query('SELECT * FROM vw_animales_activos WHERE estado = ?', [estado]);
-		return rows;
-	}
-	const [rows] = await pool.query('SELECT * FROM vw_animales_activos');
-	return rows;
+	return AnimalesModel.getAnimales(estado);
 };
 
 export const getAnimalPorId = async (id) => {
-	const [rows] = await pool.query('CALL pa_buscar_animal_por_id(?)', [id]);
-	return rows?.[0]?.[0] || null;
+	return AnimalesModel.getAnimalPorId(id);
 };
 
 export const crearAnimal = async (animal) => {
-	const {
-		nombre,
-		especie,
-		raza,
-		edad,
-		sexo,
-		descripcion,
-		estado,
-		foto_url,
-		fecha_ingreso
-	} = animal;
-
-	const [result] = await pool.query(
-		'CALL pa_insertar_animal(?, ?, ?, ?, ?, ?, ?, ?, ?)',
-		[nombre, especie, raza, edad, sexo, descripcion, estado, foto_url, fecha_ingreso]
-	);
-
-	return result;
+	return AnimalesModel.crearAnimal(animal);
 };
 
 export const actualizarAnimal = async (id, animal) => {
-	const {
-		nombre,
-		especie,
-		raza,
-		edad,
-		sexo,
-		descripcion,
-		estado,
-		foto_url,
-		fecha_ingreso
-	} = animal;
-
-	const [result] = await pool.query(
-		'CALL pa_editar_animal(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-		[id, nombre, especie, raza, edad, sexo, descripcion, estado, foto_url, fecha_ingreso]
-	);
-
-	return result;
+	return AnimalesModel.actualizarAnimal(id, animal);
 };
 
 export const desactivarAnimal = async (id) => {
-	const [result] = await pool.query('CALL pa_desactivar_animal(?)', [id]);
-	return result;
+	return AnimalesModel.desactivarAnimal(id);
 };
