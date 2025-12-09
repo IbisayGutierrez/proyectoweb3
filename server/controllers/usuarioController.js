@@ -1,7 +1,5 @@
 import * as usuarioService from '../services/usuariosService.js';
 
-// Controlador para manejar las peticiones HTTP relacionadas con usuarios
-
 // Obtener todos los usuarios
 export const obtenerUsuarios = async (req, res) => {
     try {

@@ -1,7 +1,7 @@
 import express from 'express';
 import * as usuarioController from '../controllers/usuarioController.js';
-import {verificarToken} from '../middleware/loginMiddleware.js';
-import {rolMiddleware} from '../middleware/rolMiddleware.js';
+import { verificarToken as authenticateToken } from '../middleware/loginMiddleware.js';
+import { rolMiddleware as checkRole } from '../middleware/rolMiddleware.js';
 
 const router = express.Router();
 
@@ -60,7 +60,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Error al obtener los usuarios
  */
-router.get('/', verificarToken, rolMiddleware('ADMIN'), usuarioController.obtenerUsuarios);
+router.get('/', authenticateToken, checkRole('ADMIN'), usuarioController.obtenerUsuarios);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.get('/', verificarToken, rolMiddleware('ADMIN'), usuarioController.obtene
  *                   type: string
  *                   example: Error al obtener el usuario
  */
-router.get('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.obtenerUsuarioPorId);
+router.get('/:id', authenticateToken, checkRole('ADMIN'), usuarioController.obtenerUsuarioPorId);
 
 /**
  * @swagger
@@ -316,7 +316,7 @@ router.post('/register', usuarioController.registrarUsuario);
  *                   type: string
  *                   example: Error al actualizar el usuario
  */
-router.put('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.actualizarUsuario);
+router.put('/:id', authenticateToken, checkRole('ADMIN'), usuarioController.actualizarUsuario);
 
 /**
  * @swagger
@@ -391,7 +391,7 @@ router.put('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.act
  *                   type: string
  *                   example: Error al cambiar la contraseña
  */
-router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), usuarioController.cambiarContrasena);
+router.patch('/:id/password', authenticateToken, checkRole('ADMIN'), usuarioController.cambiarContrasena);
 
 /**
  * @swagger
@@ -442,6 +442,6 @@ router.patch('/:id/password', verificarToken, rolMiddleware('ADMIN'), usuarioCon
  *                   type: string
  *                   example: Error al eliminar el usuario
  */
-router.delete('/:id', verificarToken, rolMiddleware('ADMIN'), usuarioController.eliminarUsuario);
+router.delete('/:id', authenticateToken, checkRole('ADMIN'), usuarioController.eliminarUsuario);
 
 export default router;
