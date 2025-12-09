@@ -1,7 +1,6 @@
 import express from 'express';
-import { login } from '../services/loginService.js';
+import * as loginController from '../controllers/loginController.js';
 import rateLimit from 'express-rate-limit';
-import {logEvent} from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -103,16 +102,6 @@ const loginLimiter = rateLimit({
  */
 
 // Ruta de login
-router.post('/login', loginLimiter, async (req, res) => {
-    const { correo, password } = req.body;
-    try {
-        const result = await login(correo, password);
-        logEvent(`Inicio de sesión exitoso para el usuario: ${correo}`);
-        res.json(result);
-    } catch (error) {
-        logEvent(`Error de inicio de sesión para el usuario: ${correo} - ${error.message}`);
-        res.status(401).json({ error: error.message });
-    }
-});
+router.post('/login', loginLimiter, loginController.iniciarSesion);
 
 export default router;

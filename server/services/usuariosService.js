@@ -1,16 +1,14 @@
-import pool from '../db/conexion.js';
 import bcrypt from 'bcrypt';
+import * as usuarioModel from '../models/usuarioModel.js';
 
 // Obtener todos los usuarios
 export const getUsuarios = async () => {
-    const [rows] = await pool.query('SELECT * FROM vw_usuarios');
-    return rows;
+    return await usuarioModel.obtenerTodosLosUsuarios();
 }
 
 // Obtener un usuario por ID
 export const getUsuarioPorId = async (id) => {
-    const [rows] = await pool.query('CALL pa_buscar_usuario_por_id(?)', [id]);
-    return rows[0];
+    return await usuarioModel.obtenerUsuarioPorId(id);
 }
 
 // Crear un nuevo usuario
@@ -24,11 +22,7 @@ export const crearUsuario = async (usuario) => {
         password_hash
     } = usuario;
     const hashedPassword = await bcrypt.hash(password_hash, 10);
-    const [result] = await pool.query(
-        'CALL pa_registrar_usuario(?, ?, ?, ?, ?, ?)',
-         [nombre, correo, telefono, direccion, rol, hashedPassword]
-        );
-    return result;
+    return await usuarioModel.insertarUsuario(nombre, correo, telefono, direccion, rol, hashedPassword);
 }
 
 // Actualizar un usuario existente
@@ -40,35 +34,23 @@ export const actualizarUsuario = async (id, usuario) => {
         direccion,
         rol
     } = usuario;
-    const [result] = await pool.query(
-        'CALL pa_editar_usuario(?, ?, ?, ?, ?, ?)',
-        [id, nombre, correo, telefono, direccion, rol]
-    );
-    return result;
+    return await usuarioModel.actualizarUsuarioPorId(id, nombre, correo, telefono, direccion, rol);
 }
 
 // Cambiar la contraseña de un usuario
 export const cambiarContrasena = async (id, nuevaContrasena) => {
     const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
-    const [result] = await pool.query(
-        'CALL pa_cambiar_contrasena(?, ?)',
-        [id, hashedPassword]
-    );
-    return result;
+    return await usuarioModel.actualizarContrasena(id, hashedPassword);
 }
 
 // Eliminar un usuario no borrado físicamente, solo cambiar su estado a inactivo
 export const eliminarUsuario = async (id) => {
-    const [result] = await pool.query('CALL pa_desactivar_usuario(?)', [id]);
-    return result;
+    return await usuarioModel.desactivarUsuarioPorId(id);
 }
 
 //funcion para validar un usuario durante el login por correo y password
 export const validarUsuario = async (correo, password) => {
-    const [rows] = await pool.query('CALL pa_buscar_usuario_por_correo(?)', [correo]);
-    
-    // Los CALL procedures devuelven array anidado: rows[0] es el resultset, rows[0][0] es el usuario
-    const usuario = rows[0]?.[0] || rows[0];
+    const usuario = await usuarioModel.obtenerUsuarioPorCorreo(correo);
     
     if (!usuario || !usuario.password_hash) {
         return null;
